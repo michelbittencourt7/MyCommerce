@@ -1,5 +1,5 @@
-import React, {Component, Fragment} from 'react';
-import {SafeAreaView, View, ScrollView, StyleSheet} from 'react-native';
+import React, {Component, Fragment, useState} from 'react';
+import {SafeAreaView, View, ScrollView, StyleSheet, Modal} from 'react-native';
 import {
   Container,
   ProductsList,
@@ -8,11 +8,30 @@ import {
   Title,
   Brand,
   Price,
+  Category,
+  Categories,
+  CategorieName,
+  Filters,
 } from './styles';
 
-import {Text} from 'native-base';
+import {
+  Text,
+  Button,
+  Icon,
+  Grid,
+  Col,
+  Row,
+  Picker,
+  Item,
+  Input,
+} from 'native-base';
 import Header from '../../components/Header';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {
+  TouchableOpacity,
+  TouchableHighlight,
+} from 'react-native-gesture-handler';
+import CardProduct from '../../components/CardProduct';
 
 // import { Container } from './styles';
 
@@ -70,41 +89,129 @@ const products = {
   loading: true,
 };
 
-export default function main() {
-  return (
-    <>
-      <Header />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          {/* <Header /> */}
-          <View>
-            <ProductsList
-              numColumns={2}
-              data={products.data}
-              refreshing={products.loading}
-              onRefresh={this.handleProductsRefreshing}
-              keyExtractor={product => String(product.id)}
-              showsVerticalScrollIndicator={false}
-              renderItem={({item}) => (
-                <Product onPress={() => this.handleProductPress(item)}>
-                  <Cover source={{uri: item.image}} />
-                  <Title>{item.name}</Title>
-                  <Brand>{item.brand}</Brand>
-                  <Price>{`$ ${item.price}`}</Price>
-                </Product>
-              )}
-            />
+export default class main extends Component {
+  state = {
+    modalVisible: false,
+  };
+
+  setModalVisible(visible) {
+    this.setState({modalVisible: visible});
+  }
+
+  renderModal = () => {
+    const {modalVisible} = this.state;
+    return (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          Alert.alert('Modal has been closed.');
+        }}>
+        <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.9)'}}>
+          <View style={{marginTop: 22}}>
+            <Item style={{backgroundColor: '#fff'}}>
+              <Icon name="ios-search" />
+              <Input placeholder="Buscar por nome" />
+            </Item>
+
+            <Button
+              block
+              success
+              onPress={() => {
+                this.setModalVisible(false);
+              }}>
+              <Text style={{color: 'white'}}>Aplicar</Text>
+            </Button>
           </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
-  );
+        </View>
+      </Modal>
+    );
+  };
+
+  render() {
+    const {navigation} = this.props;
+    return (
+      <>
+        {/* <Header /> */}
+        <SafeAreaView>
+          <ScrollView
+            contentInsetAdjustmentBehavior="automatic"
+            style={styles.scrollView}>
+            {/* <Header /> */}
+            <Category>
+              <Categories>
+                <CategorieName>Todos os produtos</CategorieName>
+              </Categories>
+              <Filters>
+                <View>
+                  <TouchableOpacity onPress={() => this.setModalVisible(true)}>
+                    <Button iconLeft transparent>
+                      <Icon name="funnel" style={styles.iconFilter} />
+                      <Text style={styles.catLink}>Filtros</Text>
+                    </Button>
+                  </TouchableOpacity>
+                </View>
+                <View style={{flexDirection: 'row', paddingRight: 20}}>
+                  <TouchableOpacity>
+                    <Text style={{fontSize: 20}}>Aa </Text>
+                  </TouchableOpacity>
+                  <Text style={{fontSize: 20}}>/</Text>
+                  <TouchableOpacity>
+                    <Text style={{fontSize: 20}}> $</Text>
+                  </TouchableOpacity>
+                </View>
+              </Filters>
+            </Category>
+            <View>
+              <ProductsList
+                numColumns={2}
+                data={products.data}
+                refreshing={products.loading}
+                onRefresh={this.handleProductsRefreshing}
+                keyExtractor={product => String(product.id)}
+                showsVerticalScrollIndicator={false}
+                renderItem={({item}) => (
+                  <CardProduct data={item} navigation={navigation} />
+                )}
+              />
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+        {this.renderModal()}
+      </>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
   scrollView: {
     backgroundColor: Colors.lighter,
   },
+  catLink: {
+    color: '#000',
+  },
+  iconFilter: {
+    color: '#000',
+    fontSize: 20,
+  },
 });
+
+main.navigationOptions = {
+  title: 'MyCommerce',
+  headerStyle: {
+    backgroundColor: '#f4511e',
+  },
+  headerTintColor: '#fff',
+  headerTitleStyle: {
+    fontWeight: 'bold',
+  },
+
+  headerRight: () => (
+    <Button
+      // onPress={navigation.getParam('increaseCount')}
+      title="+1"
+      color="#fff"
+    />
+  ),
+};

@@ -15,36 +15,29 @@ export const ProductsList = styled.FlatList.attrs({
   },
 })``;
 
-export const Product = styled.TouchableOpacity.attrs({
-  activeOpacity: 0.6,
-})`
-  width: 48%;
-  margin-top: 20px;
-  padding: 10px;
-  background: white;
+export const Category = styled.View`
+  /* height: 30; */
+  flex: 1;
+  background-color: #fff;
 `;
 
-export const Cover = styled.Image.attrs({
-  resizeMode: 'contain',
-})`
-  height: 180px;
-  margin-bottom: 10px;
+export const Categories = styled.View`
+  text-align: center;
+  flex: 1;
+  flex-direction: row;
+  justify-content: center;
 `;
 
-export const Title = styled.Text`
-  color: #555;
-  font-size: 14px;
-  font-weight: bold;
+export const CategorieName = styled.Text`
+  font-size: 27;
+  font-weight: 400;
+  padding-top: 30;
+  padding-bottom: 30;
 `;
 
-export const Brand = styled.Text`
-  margin-bottom: 5px;
-  color: #bbb;
-  font-size: 11px;
-`;
-
-export const Price = styled.Text`
-  color: #37bea9;
-  font-size: 11px;
-  font-weight: bold;
+export const Filters = styled.View`
+  flex: 1;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 `;
