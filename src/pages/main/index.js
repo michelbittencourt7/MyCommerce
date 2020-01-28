@@ -1,5 +1,12 @@
 import React, {Component, Fragment, useState} from 'react';
-import {SafeAreaView, View, ScrollView, StyleSheet, Modal} from 'react-native';
+import {
+  SafeAreaView,
+  View,
+  ScrollView,
+  StyleSheet,
+  Modal,
+  StatusBar,
+} from 'react-native';
 import {
   Container,
   ProductsList,
@@ -24,6 +31,9 @@ import {
   Picker,
   Item,
   Input,
+  ListItem,
+  CheckBox,
+  Body,
 } from 'native-base';
 import Header from '../../components/Header';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
@@ -94,6 +104,22 @@ export default class main extends Component {
     modalVisible: false,
   };
 
+  static navigationOptions = ({navigation}) => {
+    return {
+      headerStyle: {backgroundColor: '#f4511e'},
+      headerTitle: () => (
+        <Text style={{fontWeight: 'bold', color: 'white', fontSize: 21}}>
+          MyCommerce
+        </Text>
+      ),
+      headerRight: () => (
+        <Button transparent light style={{paddingRight: 20, paddingTop: 13}}>
+          <Icon name="cart" style={{color: 'white', fontSize: 21}} />
+        </Button>
+      ),
+    };
+  };
+
   setModalVisible(visible) {
     this.setState({modalVisible: visible});
   }
@@ -108,19 +134,118 @@ export default class main extends Component {
         onRequestClose={() => {
           Alert.alert('Modal has been closed.');
         }}>
-        <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.9)'}}>
-          <View style={{marginTop: 22}}>
+        <StatusBar barStyle="dark-content" backgroundColor="#000" />
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.95)',
+            paddingRight: 20,
+            paddingLeft: 20,
+          }}>
+          <View style={{marginTop: 30}}>
+            <Text
+              style={{
+                color: 'white',
+                paddingBottom: 20,
+                fontSize: 27,
+                paddingLeft: 5,
+              }}>
+              Filtros
+            </Text>
+
+            <Text
+              style={{
+                color: 'white',
+                paddingTop: 20,
+                paddingBottom: 5,
+                fontSize: 18,
+                paddingLeft: 5,
+              }}>
+              Nome
+            </Text>
             <Item style={{backgroundColor: '#fff'}}>
-              <Icon name="ios-search" />
+              <Icon name="ios-search" style={{paddingLeft: 10}} />
               <Input placeholder="Buscar por nome" />
             </Item>
+
+            <Text
+              style={{
+                color: 'white',
+                paddingTop: 20,
+                paddingBottom: 5,
+                fontSize: 18,
+                paddingLeft: 5,
+              }}>
+              Departamento
+            </Text>
+            <ListItem style={{marginLeft: 5}}>
+              <CheckBox color="#f4511e" checked={true} />
+              <Body>
+                <Text style={{color: 'white'}}>Refrigerantes</Text>
+              </Body>
+            </ListItem>
+            <ListItem style={{marginLeft: 5}}>
+              <CheckBox color="#f4511e" checked={true} />
+              <Body>
+                <Text style={{color: 'white'}}>Eletrônicos</Text>
+              </Body>
+            </ListItem>
+            <Text
+              style={{
+                color: 'white',
+                paddingTop: 20,
+                paddingBottom: 5,
+                fontSize: 18,
+                paddingLeft: 5,
+              }}>
+              Preço
+            </Text>
+            <View style={{display: 'flex', flexDirection: 'row'}}>
+              <Item style={{backgroundColor: '#fff', flexGrow: 0.5}}>
+                <Icon style={{paddingLeft: 10, fontSize: 14}}>De</Icon>
+                <Picker
+                  mode="dropdown"
+                  placeholder="Valor Inicial"
+                  iosHeader="Valor Inicial"
+                  // iosIcon={<Icon name="arrow-down" />}
+                  style={{width: undefined}}
+                  // selectedValue={this.state.selected}
+                  // onValueChange={this.onValueChange.bind(this)}
+                >
+                  <Picker.Item label="R$ 0,00" value="key0" />
+                  <Picker.Item label="R$ 10,00" value="key1" />
+                  <Picker.Item label="R$ 20,00" value="key2" />
+                  <Picker.Item label="R$ 30,00" value="key3" />
+                  <Picker.Item label="R$ 40,00" value="key4" />
+                </Picker>
+              </Item>
+              <Item style={{backgroundColor: '#fff', flexGrow: 0.5}}>
+                <Icon style={{paddingLeft: 10, fontSize: 14}}>Até</Icon>
+                <Picker
+                  mode="dropdown"
+                  placeholder="Valor Até"
+                  iosHeader="Valor Até"
+                  // iosIcon={<Icon name="arrow-down" />}
+                  style={{width: undefined}}
+                  // selectedValue={this.state.selected}
+                  // onValueChange={this.onValueChange.bind(this)}
+                >
+                  <Picker.Item label="R$ 0,00" value="key0" />
+                  <Picker.Item label="R$ 10,00" value="key1" />
+                  <Picker.Item label="R$ 20,00" value="key2" />
+                  <Picker.Item label="R$ 30,00" value="key3" />
+                  <Picker.Item label="R$ 40,00" value="key4" />
+                </Picker>
+              </Item>
+            </View>
 
             <Button
               block
               success
               onPress={() => {
                 this.setModalVisible(false);
-              }}>
+              }}
+              style={{marginTop: 30}}>
               <Text style={{color: 'white'}}>Aplicar</Text>
             </Button>
           </View>
@@ -154,11 +279,51 @@ export default class main extends Component {
                 </View>
                 <View style={{flexDirection: 'row', paddingRight: 20}}>
                   <TouchableOpacity>
-                    <Text style={{fontSize: 20}}>Aa </Text>
+                    <Button
+                      primary
+                      style={{
+                        marginLeft: 5,
+                        marginTop: 5,
+                        marginBottom: 5,
+                        height: 40,
+                      }}>
+                      <Text
+                        style={{
+                          fontSize: 21,
+                          paddingLeft: 10,
+                          paddingRight: 10,
+                          paddingTop: 5,
+                          paddingBottom: 5,
+                          fontSize: 17,
+                          color: '#fff',
+                        }}>
+                        Aa
+                      </Text>
+                    </Button>
                   </TouchableOpacity>
-                  <Text style={{fontSize: 20}}>/</Text>
                   <TouchableOpacity>
-                    <Text style={{fontSize: 20}}> $</Text>
+                    <Button
+                      bordered
+                      dark
+                      style={{
+                        marginLeft: 2,
+                        marginTop: 5,
+                        marginBottom: 5,
+                        height: 40,
+                      }}>
+                      <Text
+                        style={{
+                          fontSize: 21,
+                          paddingLeft: 10,
+                          paddingRight: 10,
+                          paddingTop: 5,
+                          paddingBottom: 5,
+                          fontSize: 17,
+                          color: 'rgba(0,0,0,0.5)',
+                        }}>
+                        R$
+                      </Text>
+                    </Button>
                   </TouchableOpacity>
                 </View>
               </Filters>
@@ -197,21 +362,13 @@ const styles = StyleSheet.create({
   },
 });
 
-main.navigationOptions = {
-  title: 'MyCommerce',
-  headerStyle: {
-    backgroundColor: '#f4511e',
-  },
-  headerTintColor: '#fff',
-  headerTitleStyle: {
-    fontWeight: 'bold',
-  },
-
-  headerRight: () => (
-    <Button
-      // onPress={navigation.getParam('increaseCount')}
-      title="+1"
-      color="#fff"
-    />
-  ),
-};
+// main.navigationOptions = {
+//   // title: 'MyCommerce',
+//   headerStyle: {
+//     backgroundColor: '#f4511e',
+//   },
+//   headerTintColor: '#fff',
+//   headerTitleStyle: {
+//     fontWeight: 'bold',
+//   },
+// };
