@@ -6,26 +6,33 @@ import {TouchableOpacity} from 'react-native-gesture-handler';
 
 // import { Container } from './styles';
 
+const getStars = stars => {
+  let data = [];
+
+  for (let i = 0; i < stars; i++) {
+    data.push(<Icon name="star" style={styles.star}></Icon>);
+  }
+
+  return data;
+};
+
 export default function CardProduct({data, navigation}) {
   return (
     <Product>
-      <Cover source={{uri: data.image}} />
-      <Title>{data.name}</Title>
-      <Brand>{data.brand}</Brand>
-      <Price>{`$ ${data.price}`}</Price>
-      <TouchableOpacity onPress={() => navigation.navigate('Details')}>
-        <Button rounded primary block style={styles.addCart}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Details', {product: data})}>
+        <Cover source={{uri: data.image[0]}} />
+        <Title>{data.name}</Title>
+        <Brand>{data.brand}</Brand>
+        <Price>{`$ ${data.price}`}</Price>
+
+        {/* <Button rounded primary block style={styles.addCart}>
           <Text style={{color: 'white'}}>Comprar</Text>
         </Button>
+       */}
+        <View style={styles.stars}>{getStars(data.stars)}</View>
+        <Text style={styles.rating}>(228 Avaliações)</Text>
       </TouchableOpacity>
-      <View style={styles.stars}>
-        <Icon name="star" style={styles.star}></Icon>
-        <Icon name="star" style={styles.star}></Icon>
-        <Icon name="star" style={styles.star}></Icon>
-        <Icon name="star" style={styles.star}></Icon>
-        <Icon name="star" style={styles.star}></Icon>
-      </View>
-      <Text style={styles.rating}>(228 Avaliações)</Text>
     </Product>
   );
 }

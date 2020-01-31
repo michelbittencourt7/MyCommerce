@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Dimensions, StyleSheet, View, Text, Button} from 'react-native';
+import {Alert, Dimensions, StyleSheet, View, Text, Button} from 'react-native';
 import {
   Button as ButtonNB,
   Text as TextNB,
@@ -9,6 +9,8 @@ import {
   Thumbnail,
   Body,
   Right,
+  Toast,
+  Icon,
 } from 'native-base';
 import Carousel, {ParallaxImage} from 'react-native-snap-carousel';
 import {Container} from '../main/styles';
@@ -27,6 +29,7 @@ import {
   RatingPanel,
   RatingTitle,
 } from './styles';
+import AsyncStorage from '@react-native-community/async-storage';
 
 const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
 
@@ -73,7 +76,7 @@ const _renderItem = ({item, index}, parallaxProps) => {
         height: screenWidth - 150,
       }}>
       <ParallaxImage
-        source={{uri: item.illustration}}
+        source={{uri: item}}
         containerStyle={{
           flex: 1,
           marginBottom: Platform.select({ios: 0, android: 1}), // Prevent a random Android rendering issue
@@ -81,7 +84,7 @@ const _renderItem = ({item, index}, parallaxProps) => {
           backgroundColor: 'white',
           borderRadius: 4,
         }}
-        style={{resizeMode: 'cover'}}
+        style={{resizeMode: 'contain'}}
         parallaxFactor={0.4}
         {...parallaxProps}
       />
@@ -89,12 +92,34 @@ const _renderItem = ({item, index}, parallaxProps) => {
   );
 };
 
-const Ratings = [
-  {name: 'Nome do Avaliador', comment: 'Comentario', rate: 5},
-  {name: 'Nome do Avaliador', comment: 'Comentario', rate: 5},
-];
+const addToCart = (product, navigation) => {
+  Alert.alert(
+    'Adicionar produto ao carrinho',
+    'Deseja mesmo adicionar este produto ao carrinho?',
+    [
+      {
+        text: 'Não',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {
+        text: 'Sim',
+        onPress: async () => {
+          let cart = [];
+          cart = JSON.parse(await AsyncStorage.getItem('cart'));
+          cart.push(product);
+          await AsyncStorage.setItem('cart', JSON.stringify(cart));
+          navigation.pop();
+        },
+      },
+    ],
+    {cancelable: false},
+  );
+};
 
 export default function Details({navigation}) {
+  let product = navigation.getParam('product');
+
   return (
     <SafeAreaView>
       <ScrollView
@@ -104,21 +129,35 @@ export default function Details({navigation}) {
           sliderWidth={screenWidth}
           sliderHeight={screenWidth}
           itemWidth={screenWidth - 60}
-          data={entries}
+          data={product.image}
           renderItem={_renderItem}
           hasParallaxImages={true}
         />
         <View style={styles.productInfo}>
-          <Title>Nome do Produto</Title>
-          <Price>R$ 35,00</Price>
+          <Title>{product.name}</Title>
+          <Price>R$ {product.price}</Price>
           <PriceWDiscount>
-            R$ 31,50 <Discount>(10% de desconto)</Discount>
+            R${' '}
+            {(product.price - product.price * (product.discount / 100)).toFixed(
+              2,
+            )}{' '}
+            <Discount>(10% de desconto)</Discount>
           </PriceWDiscount>
-          <ButtonNB block success style={styles.buyButton}>
+          <ButtonNB
+            block
+            success
+            style={styles.buyButton}
+            onPress={() => addToCart(product, navigation)}>
             <TextNB style={{color: 'white'}}>Comprar</TextNB>
           </ButtonNB>
           <TouchableOpacity>
-            <ButtonNB block bordered danger style={styles.addButton}>
+            <ButtonNB
+              block
+              bordered
+              danger
+              style={styles.addButton}
+              onPress={() => addToCart(product, navigation)}>
+              >
               <TextNB style={styles.addButtonText}>
                 Adicionar ao carrinho
               </TextNB>
@@ -128,35 +167,50 @@ export default function Details({navigation}) {
         <Divider />
         <DescriptionPanel>
           <DescriptionTitle>Descrição</DescriptionTitle>
-          <Description>Descricao do Produto</Description>
+          <Description>{product.description}</Description>
         </DescriptionPanel>
         <Divider />
         <RatingPanel>
           <RatingTitle>Avaliações</RatingTitle>
-          <List>
-            {Ratings.map(item => (
-              <ListItem avatar>
-                <Left>
-                  <Thumbnail
-                    source={{
-                      uri:
-                        'https://images.vexels.com/media/users/3/129733/isolated/preview/a558682b158debb6d6f49d07d854f99f-silhueta-de-avatar-masculino-casual-by-vexels.png',
-                    }}
-                  />
-                </Left>
-                <Body>
-                  <Text>Kumar Pratik</Text>
-                  <Text note>
-                    Doing what you like will always keep you happy . .
-                  </Text>
-                </Body>
-                <Right>
-                  <Text note>3:43 pm</Text>
-                </Right>
-              </ListItem>
-            ))}
-          </List>
+          {product.ratings.length > 0 ? (
+            <List>
+              {product.ratings.map(item => (
+                <ListItem avatar>
+                  <Left>
+                    <Thumbnail
+                      source={{
+                        uri:
+                          'https://images.vexels.com/media/users/3/129733/isolated/preview/a558682b158debb6d6f49d07d854f99f-silhueta-de-avatar-masculino-casual-by-vexels.png',
+                      }}
+                    />
+                  </Left>
+                  <Body>
+                    <Text>{item.name}</Text>
+                    <Text note>{item.comment}</Text>
+                  </Body>
+                  <Right>
+                    <Text>
+                      {item.rate} <Icon name="star" style={styles.rating} />
+                    </Text>
+                  </Right>
+                </ListItem>
+              ))}
+            </List>
+          ) : (
+            <View>
+              <Text
+                style={{
+                  paddingTop: 10,
+                  paddingBottom: 10,
+                  color: '#808080',
+                  fontSize: 17,
+                }}>
+                Sem avaliações ainda
+              </Text>
+            </View>
+          )}
         </RatingPanel>
+        <Divider />
       </ScrollView>
     </SafeAreaView>
   );
@@ -182,6 +236,10 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: '#f4511e',
+  },
+  rating: {
+    fontSize: 14,
+    color: 'gold',
   },
 });
 

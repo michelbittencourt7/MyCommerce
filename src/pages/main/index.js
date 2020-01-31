@@ -1,4 +1,4 @@
-import React, {Component, Fragment, useState} from 'react';
+import React, {Component, Fragment, useState, useEffect} from 'react';
 import {
   SafeAreaView,
   View,
@@ -7,6 +7,7 @@ import {
   Modal,
   StatusBar,
 } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import {
   Container,
   ProductsList,
@@ -42,6 +43,7 @@ import {
   TouchableHighlight,
 } from 'react-native-gesture-handler';
 import CardProduct from '../../components/CardProduct';
+import {initialProducts, initialCategories} from '../../utils/data';
 
 // import { Container } from './styles';
 
@@ -99,10 +101,25 @@ const products = {
   loading: true,
 };
 
+const initialCart = [];
+
 export default class main extends Component {
   state = {
     modalVisible: false,
+    dataProducts: initialProducts,
+    dataCategories: initialCategories,
+    filterSelected: 'name',
   };
+
+  componentDidMount() {
+    try {
+      AsyncStorage.setItem('products', initialProducts);
+      AsyncStorage.setItem('categories', initialCategories);
+      AsyncStorage.setItem('cart', JSON.stringify(initialCart));
+    } catch (e) {
+      // saving error
+    }
+  }
 
   static navigationOptions = ({navigation}) => {
     return {
@@ -113,146 +130,182 @@ export default class main extends Component {
         </Text>
       ),
       headerRight: () => (
-        <Button transparent light style={{paddingRight: 20, paddingTop: 13}}>
+        <Button
+          transparent
+          light
+          style={{paddingRight: 5, paddingTop: 13}}
+          onPress={() => navigation.navigate('Cart')}>
           <Icon name="cart" style={{color: 'white', fontSize: 21}} />
         </Button>
       ),
     };
   };
 
+  sortProducts = async field => {
+    let arrProducts = JSON.parse(JSON.stringify(this.state.dataProducts));
+
+    arrProducts = await arrProducts.sort(function(a, b) {
+      if (a[field] > b[field]) {
+        return 1;
+      }
+      if (a[field] < b[field]) {
+        return -1;
+      }
+      // a must be equal to b
+      return 0;
+    });
+
+    this.setState({
+      filterSelected: [field],
+      dataProducts: arrProducts,
+    });
+  };
+
+  search = ev => {
+    console.log(ev);
+    let arrProducts = JSON.parse(JSON.stringify(initialProducts));
+    if (ev.length > 0) {
+      arrProducts = arrProducts.filter(obj => obj.name.includes(ev));
+    }
+
+    this.setState({
+      dataProducts: arrProducts,
+    });
+  };
+
   setModalVisible(visible) {
     this.setState({modalVisible: visible});
   }
 
-  renderModal = () => {
-    const {modalVisible} = this.state;
-    return (
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          Alert.alert('Modal has been closed.');
-        }}>
-        <StatusBar barStyle="dark-content" backgroundColor="#000" />
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.95)',
-            paddingRight: 20,
-            paddingLeft: 20,
-          }}>
-          <View style={{marginTop: 30}}>
-            <Text
-              style={{
-                color: 'white',
-                paddingBottom: 20,
-                fontSize: 27,
-                paddingLeft: 5,
-              }}>
-              Filtros
-            </Text>
+  // renderModal = () => {
+  //   const {modalVisible} = this.state;
+  //   return (
+  //     <Modal
+  //       animationType="fade"
+  //       transparent={true}
+  //       visible={modalVisible}
+  //       onRequestClose={() => {
+  //         Alert.alert('Modal has been closed.');
+  //       }}>
+  //       <StatusBar barStyle="dark-content" backgroundColor="#000" />
+  //       <View
+  //         style={{
+  //           flex: 1,
+  //           backgroundColor: 'rgba(0,0,0,0.95)',
+  //           paddingRight: 20,
+  //           paddingLeft: 20,
+  //         }}>
+  //         <View style={{marginTop: 30}}>
+  //           <Text
+  //             style={{
+  //               color: 'white',
+  //               paddingBottom: 20,
+  //               fontSize: 27,
+  //               paddingLeft: 5,
+  //             }}>
+  //             Filtros
+  //           </Text>
 
-            <Text
-              style={{
-                color: 'white',
-                paddingTop: 20,
-                paddingBottom: 5,
-                fontSize: 18,
-                paddingLeft: 5,
-              }}>
-              Nome
-            </Text>
-            <Item style={{backgroundColor: '#fff'}}>
-              <Icon name="ios-search" style={{paddingLeft: 10}} />
-              <Input placeholder="Buscar por nome" />
-            </Item>
+  //           <Text
+  //             style={{
+  //               color: 'white',
+  //               paddingTop: 20,
+  //               paddingBottom: 5,
+  //               fontSize: 18,
+  //               paddingLeft: 5,
+  //             }}>
+  //             Nome
+  //           </Text>
+  //           <Item style={{backgroundColor: '#fff'}}>
+  //             <Icon name="ios-search" style={{paddingLeft: 10}} />
+  //             <Input placeholder="Buscar por nome" />
+  //           </Item>
 
-            <Text
-              style={{
-                color: 'white',
-                paddingTop: 20,
-                paddingBottom: 5,
-                fontSize: 18,
-                paddingLeft: 5,
-              }}>
-              Departamento
-            </Text>
-            <ListItem style={{marginLeft: 5}}>
-              <CheckBox color="#f4511e" checked={true} />
-              <Body>
-                <Text style={{color: 'white'}}>Refrigerantes</Text>
-              </Body>
-            </ListItem>
-            <ListItem style={{marginLeft: 5}}>
-              <CheckBox color="#f4511e" checked={true} />
-              <Body>
-                <Text style={{color: 'white'}}>Eletrônicos</Text>
-              </Body>
-            </ListItem>
-            <Text
-              style={{
-                color: 'white',
-                paddingTop: 20,
-                paddingBottom: 5,
-                fontSize: 18,
-                paddingLeft: 5,
-              }}>
-              Preço
-            </Text>
-            <View style={{display: 'flex', flexDirection: 'row'}}>
-              <Item style={{backgroundColor: '#fff', flexGrow: 0.5}}>
-                <Icon style={{paddingLeft: 10, fontSize: 14}}>De</Icon>
-                <Picker
-                  mode="dropdown"
-                  placeholder="Valor Inicial"
-                  iosHeader="Valor Inicial"
-                  // iosIcon={<Icon name="arrow-down" />}
-                  style={{width: undefined}}
-                  // selectedValue={this.state.selected}
-                  // onValueChange={this.onValueChange.bind(this)}
-                >
-                  <Picker.Item label="R$ 0,00" value="key0" />
-                  <Picker.Item label="R$ 10,00" value="key1" />
-                  <Picker.Item label="R$ 20,00" value="key2" />
-                  <Picker.Item label="R$ 30,00" value="key3" />
-                  <Picker.Item label="R$ 40,00" value="key4" />
-                </Picker>
-              </Item>
-              <Item style={{backgroundColor: '#fff', flexGrow: 0.5}}>
-                <Icon style={{paddingLeft: 10, fontSize: 14}}>Até</Icon>
-                <Picker
-                  mode="dropdown"
-                  placeholder="Valor Até"
-                  iosHeader="Valor Até"
-                  // iosIcon={<Icon name="arrow-down" />}
-                  style={{width: undefined}}
-                  // selectedValue={this.state.selected}
-                  // onValueChange={this.onValueChange.bind(this)}
-                >
-                  <Picker.Item label="R$ 0,00" value="key0" />
-                  <Picker.Item label="R$ 10,00" value="key1" />
-                  <Picker.Item label="R$ 20,00" value="key2" />
-                  <Picker.Item label="R$ 30,00" value="key3" />
-                  <Picker.Item label="R$ 40,00" value="key4" />
-                </Picker>
-              </Item>
-            </View>
+  //           <Text
+  //             style={{
+  //               color: 'white',
+  //               paddingTop: 20,
+  //               paddingBottom: 5,
+  //               fontSize: 18,
+  //               paddingLeft: 5,
+  //             }}>
+  //             Departamento
+  //           </Text>
+  //           <ListItem style={{marginLeft: 5}}>
+  //             <CheckBox color="#f4511e" checked={true} />
+  //             <Body>
+  //               <Text style={{color: 'white'}}>Refrigerantes</Text>
+  //             </Body>
+  //           </ListItem>
+  //           <ListItem style={{marginLeft: 5}}>
+  //             <CheckBox color="#f4511e" checked={true} />
+  //             <Body>
+  //               <Text style={{color: 'white'}}>Eletrônicos</Text>
+  //             </Body>
+  //           </ListItem>
+  //           <Text
+  //             style={{
+  //               color: 'white',
+  //               paddingTop: 20,
+  //               paddingBottom: 5,
+  //               fontSize: 18,
+  //               paddingLeft: 5,
+  //             }}>
+  //             Preço
+  //           </Text>
+  //           <View style={{display: 'flex', flexDirection: 'row'}}>
+  //             <Item style={{backgroundColor: '#fff', flexGrow: 0.5}}>
+  //               <Icon style={{paddingLeft: 10, fontSize: 14}}>De</Icon>
+  //               <Picker
+  //                 mode="dropdown"
+  //                 placeholder="Valor Inicial"
+  //                 iosHeader="Valor Inicial"
+  //                 // iosIcon={<Icon name="arrow-down" />}
+  //                 style={{width: undefined}}
+  //                 // selectedValue={this.state.selected}
+  //                 // onValueChange={this.onValueChange.bind(this)}
+  //               >
+  //                 <Picker.Item label="R$ 0,00" value="key0" />
+  //                 <Picker.Item label="R$ 10,00" value="key1" />
+  //                 <Picker.Item label="R$ 20,00" value="key2" />
+  //                 <Picker.Item label="R$ 30,00" value="key3" />
+  //                 <Picker.Item label="R$ 40,00" value="key4" />
+  //               </Picker>
+  //             </Item>
+  //             <Item style={{backgroundColor: '#fff', flexGrow: 0.5}}>
+  //               <Icon style={{paddingLeft: 10, fontSize: 14}}>Até</Icon>
+  //               <Picker
+  //                 mode="dropdown"
+  //                 placeholder="Valor Até"
+  //                 iosHeader="Valor Até"
+  //                 // iosIcon={<Icon name="arrow-down" />}
+  //                 style={{width: undefined}}
+  //                 // selectedValue={this.state.selected}
+  //                 // onValueChange={this.onValueChange.bind(this)}
+  //               >
+  //                 <Picker.Item label="R$ 0,00" value="key0" />
+  //                 <Picker.Item label="R$ 10,00" value="key1" />
+  //                 <Picker.Item label="R$ 20,00" value="key2" />
+  //                 <Picker.Item label="R$ 30,00" value="key3" />
+  //                 <Picker.Item label="R$ 40,00" value="key4" />
+  //               </Picker>
+  //             </Item>
+  //           </View>
 
-            <Button
-              block
-              success
-              onPress={() => {
-                this.setModalVisible(false);
-              }}
-              style={{marginTop: 30}}>
-              <Text style={{color: 'white'}}>Aplicar</Text>
-            </Button>
-          </View>
-        </View>
-      </Modal>
-    );
-  };
+  //           <Button
+  //             block
+  //             success
+  //             onPress={() => {
+  //               this.setModalVisible(false);
+  //             }}
+  //             style={{marginTop: 30}}>
+  //             <Text style={{color: 'white'}}>Aplicar</Text>
+  //           </Button>
+  //         </View>
+  //       </View>
+  //     </Modal>
+  //   );
+  // };
 
   render() {
     const {navigation} = this.props;
@@ -270,57 +323,68 @@ export default class main extends Component {
               </Categories>
               <Filters>
                 <View>
-                  <TouchableOpacity onPress={() => this.setModalVisible(true)}>
-                    <Button iconLeft transparent>
+                  <Item style={{width: 250, paddingLeft: 10}}>
+                    <Icon name="ios-search" />
+                    <Input
+                      placeholder="Buscar por nome"
+                      style={{width: 100}}
+                      onChangeText={this.search}
+                    />
+                  </Item>
+                  {/* <TouchableOpacity onPress={() => this.setModalVisible(true)}> */}
+                  {/* <Button iconLeft transparent>
                       <Icon name="funnel" style={styles.iconFilter} />
                       <Text style={styles.catLink}>Filtros</Text>
-                    </Button>
-                  </TouchableOpacity>
+                    </Button> */}
+                  {/* </TouchableOpacity> */}
                 </View>
                 <View style={{flexDirection: 'row', paddingRight: 20}}>
                   <TouchableOpacity>
                     <Button
-                      primary
+                      primary={
+                        this.state.filterSelected == 'name' ? true : false
+                      }
+                      bordered={
+                        this.state.filterSelected == 'name' ? false : true
+                      }
                       style={{
                         marginLeft: 5,
                         marginTop: 5,
                         marginBottom: 5,
                         height: 40,
-                      }}>
+                      }}
+                      onPress={() => this.sortProducts('name')}>
                       <Text
-                        style={{
-                          fontSize: 21,
-                          paddingLeft: 10,
-                          paddingRight: 10,
-                          paddingTop: 5,
-                          paddingBottom: 5,
-                          fontSize: 17,
-                          color: '#fff',
-                        }}>
+                        style={
+                          this.state.filterSelected === 'name'
+                            ? styles.textSelected
+                            : styles.textNotSelected
+                        }>
                         Aa
                       </Text>
                     </Button>
                   </TouchableOpacity>
                   <TouchableOpacity>
                     <Button
-                      bordered
-                      dark
+                      primary={
+                        this.state.filterSelected == 'price' ? true : false
+                      }
+                      bordered={
+                        this.state.filterSelected == 'price' ? false : true
+                      }
                       style={{
                         marginLeft: 2,
                         marginTop: 5,
                         marginBottom: 5,
                         height: 40,
-                      }}>
+                      }}
+                      onPress={() => this.sortProducts('price')}>
                       <Text
-                        style={{
-                          fontSize: 21,
-                          paddingLeft: 10,
-                          paddingRight: 10,
-                          paddingTop: 5,
-                          paddingBottom: 5,
-                          fontSize: 17,
-                          color: 'rgba(0,0,0,0.5)',
-                        }}>
+                        style={
+                          this.state.filterSelected === 'price'
+                            ? styles.textSelected
+                            : styles.textNotSelected
+                        }>
                         R$
                       </Text>
                     </Button>
@@ -331,7 +395,7 @@ export default class main extends Component {
             <View>
               <ProductsList
                 numColumns={2}
-                data={products.data}
+                data={this.state.dataProducts}
                 refreshing={products.loading}
                 onRefresh={this.handleProductsRefreshing}
                 keyExtractor={product => String(product.id)}
@@ -343,7 +407,7 @@ export default class main extends Component {
             </View>
           </ScrollView>
         </SafeAreaView>
-        {this.renderModal()}
+        {/* {this.renderModal()} */}
       </>
     );
   }
@@ -359,6 +423,24 @@ const styles = StyleSheet.create({
   iconFilter: {
     color: '#000',
     fontSize: 20,
+  },
+  textSelected: {
+    fontSize: 21,
+    paddingLeft: 10,
+    paddingRight: 10,
+    paddingTop: 5,
+    paddingBottom: 5,
+    fontSize: 17,
+    color: '#fff',
+  },
+  textNotSelected: {
+    fontSize: 21,
+    paddingLeft: 10,
+    paddingRight: 10,
+    paddingTop: 5,
+    paddingBottom: 5,
+    fontSize: 17,
+    color: '#222',
   },
 });
 
